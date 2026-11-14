@@ -1,0 +1,101 @@
+== main_v2.py: dimensionality reduction for classification (MNIST) ==
+start: 2026-11-13 23:16:23
+python 3.14.0, numpy 2.5.4, scipy 1.18.1, scikit-learn 1.9.1, matplotlib 3.11.2
+platform macOS-27.0.1-arm64-arm-64bit-Mach-O, machine arm64, cpu count 12
+arguments: {'cv_subsample': None, 'folds': 5, 'seed': 0, 'pilot': False, 'out_subdir': None, 'max_train': None, 'max_test': None}
+seed 0; folds 5; CV subsample 20000; output ~/Desktop/IE4476 Project/v2/results/
+[stage start] data load + checks (train)
+train images (60000, 28, 28), class counts [5923, 6742, 5958, 6131, 5842, 5421, 5918, 6265, 5851, 5949]
+class counts equal CTX-0003 (train): True
+centre of mass (train, row/col in pixels): row mean 13.996 std 0.289; col mean 14.007 std 0.291
+zero-variance pixels in training set: 67 of 784
+components for 90% / 95% / 99% cumulative variance (train): 87 / 154 / 331
+CV subsample 20000 images, class counts [1974, 2247, 1986, 2044, 1947, 1807, 1973, 2089, 1950, 1983]
+[stage done ] data load + checks (train): 3.3 s
+[stage start] cross-validation (all pipelines)
+  fold 1/5 done in 79.1 s (train 16000, validation 4000)
+  fold 2/5 done in 80.6 s (train 16000, validation 4000)
+  fold 3/5 done in 80.1 s (train 16000, validation 4000)
+  fold 4/5 done in 77.1 s (train 16000, validation 4000)
+  fold 5/5 done in 83.0 s (train 16000, validation 4000)
+[stage done ] cross-validation (all pipelines): 400.0 s
+  CV time, pipeline Raw: 26.2 s
+  CV time, pipeline PCA: 77.1 s
+  CV time, pipeline LDA: 48.1 s
+  CV time, pipeline PCA_LDA: 248.6 s
+lambda = 0 skipped (singular pooled covariance) in 1 of 1 grid points of Raw (in at least one fold)
+lambda = 0 skipped (singular pooled covariance) in 0 of 13 grid points of PCA (in at least one fold)
+lambda = 0 skipped (singular pooled covariance) in 0 of 9 grid points of LDA (in at least one fold)
+lambda = 0 skipped (singular pooled covariance) in 0 of 81 grid points of PCA_LDA (in at least one fold)
+LDA warnings (scikit-learn): none
+selected LDA+Maha: pca_dim=None lda_dim=9 lambda=0 CV acc 85.45% (sd 0.80)
+selected LDA+kNN: pca_dim=None lda_dim=9 k=7 CV acc 89.41% (sd 0.54)
+selected PCA+Maha: pca_dim=500 lda_dim=None lambda=1 CV acc 86.78% (sd 0.53)
+selected PCA+kNN: pca_dim=50 lda_dim=None k=3 CV acc 96.44% (sd 0.23)
+selected PCA_LDA+Maha: pca_dim=100 lda_dim=9 lambda=0 CV acc 86.31% (sd 0.68)
+selected PCA_LDA+kNN: pca_dim=100 lda_dim=9 k=9 CV acc 90.68% (sd 0.37)
+selected Raw+Maha: pca_dim=None lda_dim=None lambda=1 CV acc 86.84% (sd 0.61)
+selected Raw+kNN: pca_dim=None lda_dim=None k=1 CV acc 95.78% (sd 0.22)
+[stage start] data load (test)
+class counts equal CTX-0003 (test): True
+[stage done ] data load (test): 0.1 s
+[stage start] final fits on all training images + test evaluation
+  test grid point 1: Raw m=None d=None (0 s elapsed)
+  test grid point 2: PCA m=5 d=None (42 s elapsed)
+  test grid point 3: PCA m=10 d=None (46 s elapsed)
+  test grid point 4: PCA m=15 d=None (50 s elapsed)
+  test grid point 5: PCA m=20 d=None (55 s elapsed)
+  test grid point 6: PCA m=30 d=None (60 s elapsed)
+  test grid point 7: PCA m=40 d=None (65 s elapsed)
+  test grid point 8: PCA m=50 d=None (70 s elapsed)
+  test grid point 9: PCA m=75 d=None (76 s elapsed)
+  test grid point 10: PCA m=100 d=None (82 s elapsed)
+  test grid point 11: PCA m=150 d=None (90 s elapsed)
+  test grid point 12: PCA m=200 d=None (101 s elapsed)
+  test grid point 13: PCA m=300 d=None (113 s elapsed)
+  test grid point 14: PCA m=500 d=None (129 s elapsed)
+  test grid point 15: LDA m=None d=1 (172 s elapsed)
+  test grid point 24: PCA_LDA m=20 d=1 (212 s elapsed)
+  test grid point 33: PCA_LDA m=30 d=1 (250 s elapsed)
+  test grid point 42: PCA_LDA m=40 d=1 (287 s elapsed)
+  test grid point 51: PCA_LDA m=50 d=1 (326 s elapsed)
+  test grid point 60: PCA_LDA m=75 d=1 (366 s elapsed)
+  test grid point 69: PCA_LDA m=100 d=1 (406 s elapsed)
+  test grid point 78: PCA_LDA m=150 d=1 (447 s elapsed)
+  test grid point 87: PCA_LDA m=200 d=1 (489 s elapsed)
+  test grid point 96: PCA_LDA m=300 d=1 (532 s elapsed)
+[stage done ] final fits on all training images + test evaluation: 571.3 s
+TEST Raw+kNN (selected by CV): pca_dim=None lda_dim=None k=1 acc 96.91% err 3.09%
+TEST Raw+Maha (selected by CV): pca_dim=None lda_dim=None lambda=1 acc 87.93% err 12.07%
+TEST PCA+kNN (selected by CV): pca_dim=50 lda_dim=None k=3 acc 97.52% err 2.48%
+TEST PCA+Maha (selected by CV): pca_dim=500 lda_dim=None lambda=1 acc 88.03% err 11.97%
+TEST LDA+kNN (selected by CV): pca_dim=None lda_dim=9 k=7 acc 91.83% err 8.17%
+TEST LDA+Maha (selected by CV): pca_dim=None lda_dim=9 lambda=0 acc 87.30% err 12.70%
+TEST PCA_LDA+kNN (selected by CV): pca_dim=100 lda_dim=9 k=9 acc 91.95% err 8.05%
+TEST PCA_LDA+Maha (selected by CV): pca_dim=100 lda_dim=9 lambda=0 acc 87.71% err 12.29%
+sanity v1: Raw + kNN k=5 test acc 96.88% vs v1 96.88% (diff +0.00 pp)
+sanity v1: PCA(30) + kNN k=5 test acc 97.55% vs v1 97.55% (diff +0.00 pp)
+[stage start] McNemar
+M1: PCA(m=50)+kNN(k=3) vs Raw(784)+kNN(k=1): 132/71 p=2.22e-05 holm=4.45e-05
+M2: LDA(d=9)+kNN(k=7) vs Raw(784)+kNN(k=1): 109/617 p=6.44e-87 holm=3.22e-86
+M3: PCA_LDA(m=100,d=9)+kNN(k=9) vs Raw(784)+kNN(k=1): 112/608 p=2.59e-83 holm=1.04e-82
+M4: PCA(m=500)+Maha(lambda=1) vs Raw(784)+Maha(lambda=1): 36/26 p=0.253 holm=0.253
+M5: PCA(m=50)+kNN(k=3) vs PCA(m=500)+Maha(lambda=1): 1002/53 p=5.79e-228 holm=4.05e-227
+M6: PCA_LDA(m=100,d=9)+kNN(k=9) vs PCA(m=50)+kNN(k=3): 70/627 p=8.41e-113 holm=5.05e-112
+M7: LDA(d=9)+Maha(lambda=0) vs LDA(d=9)+kNN(k=7): 125/578 p=1.9e-70 holm=5.7e-70
+[stage done ] McNemar: 0.0 s
+[stage start] plots
+[stage done ] plots: 2.6 s
+== stage timings (s) ==
+data load + checks (train): 3.3
+cross-validation (all pipelines): 400.0
+  CV pipeline Raw: 26.2
+  CV pipeline PCA: 77.1
+  CV pipeline LDA: 48.1
+  CV pipeline PCA_LDA: 248.6
+data load (test): 0.1
+final fits on all training images + test evaluation: 571.3
+McNemar: 0.0
+plots: 2.6
+total: 977.3 s (16.3 min)
+end: 2026-11-13 23:32:40
