@@ -137,3 +137,6 @@ Fashion-MNIST, where kNN is far from saturated.
 5. Holm, S. (1979). A simple sequentially rejective multiple test procedure. *Scand. J. Statistics* 6(2).
 
 The dataset is not redistributed here; `scripts/fetch_mnist.py` downloads the standard copy.
+
+## Author
+Kasturiraj Guhan Govindraj
