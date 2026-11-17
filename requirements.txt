@@ -1,7 +1,6 @@
-numpy>=1.21.0
-pandas>=1.3.0
-scikit-learn>=1.0.0
-matplotlib>=3.4.0
-seaborn>=0.11.0
-python-docx>=0.8.11
-tensorflow>=2.10.0
+# Versions recorded in v2/results/run_log.txt (Python 3.14). v1 (main.py) needs the same packages.
+numpy==2.5.4
+scipy==1.18.1
+scikit-learn==1.9.1
+matplotlib==3.11.2
+pandas==3.1.1

@@ -8,3 +8,5 @@ node_modules/
 .ipynb_checkpoints/
 *.raw
 *.log
+data/
+.pytest_cache/
