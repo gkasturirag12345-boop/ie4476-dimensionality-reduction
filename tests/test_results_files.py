@@ -64,3 +64,26 @@ def test_fetch_rejects_a_wrong_file(tmp_path):
     f.write_bytes(b"not mnist")
     with pytest.raises(ValueError):
         fetch_mnist.verify(str(f))
+
+
+def test_readme_settings_and_mcnemar_match_results():
+    """Settings columns of the README table and the quoted McNemar counts/p-value come from the CSVs."""
+    readme = open(os.path.join(ROOT, "README.md")).read()
+    table = readme.split("<!-- results-table -->")[1]
+    sel = {(r["pipeline"], r["classifier"]): r for r in read("test_results.csv") if r["is_selected"] == "1"}
+    def setting(r):
+        parts = []
+        if r["pca_dim"] != "NA":
+            parts.append(f"m = {r['pca_dim']}")
+        if r["lda_dim"] != "NA":
+            parts.append(f"d = {r['lda_dim']}")
+        v = float(r["hyper_value"])
+        parts.append(f"{'k' if r['hyper_name'] == 'k' else 'λ'} = {int(v) if v.is_integer() else v:g}")
+        return ", ".join(parts)
+    rows = re.findall(r"^\| (Raw|PCA|LDA|PCA_LDA) \| (.+?) \| [\d.]+% \| (.+?) \| [\d.]+% \|", table, re.M)
+    assert len(rows) == 4
+    for pipe, knn, maha in rows:
+        assert knn == setting(sel[(pipe, "kNN")]) and maha == setting(sel[(pipe, "Maha")]), pipe
+    m1 = next(r for r in read("mcnemar.csv") if r["pair_id"] == "M1")
+    assert f"{m1['n_a_only_correct']} vs {m1['n_b_only_correct']}" in readme
+    assert f"p = {float(m1['p_value']) / 1e-5:.1f}·10⁻⁵" in readme

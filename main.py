@@ -15,7 +15,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
 
-# Use TensorFlow/Keras for MNIST (more reliable than OpenML)
 
 # Set random seed for reproducibility
 np.random.seed(42)
