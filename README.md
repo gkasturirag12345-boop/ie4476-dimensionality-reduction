@@ -215,8 +215,7 @@ X_test_pca = pca.transform(X_test)        # Transform test only
 
 ## Author
 
-Final Year Project
-November 2026
+Kasturiraj Guhan Govindraj
 
 ## License
 
