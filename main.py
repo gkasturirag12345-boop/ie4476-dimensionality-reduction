@@ -14,11 +14,8 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
-import seaborn as sns
 
 # Use TensorFlow/Keras for MNIST (more reliable than OpenML)
-import tensorflow as tf
-from tensorflow import keras
 
 # Set random seed for reproducibility
 np.random.seed(42)

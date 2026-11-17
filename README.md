@@ -1,232 +1,137 @@
-# Dimensionality Reduction and Its Effect on Classification Performance
+# Dimensionality Reduction for Handwritten-Digit Classification
 
-**Course Project: Machine Learning Fundamentals**
-**Date:** November 2026
+A controlled comparison of PCA, LDA and PCA→LDA feature extraction on MNIST. Two classifiers are tested, k-nearest
+neighbours and a minimum-Mahalanobis-distance rule. Every hyper-parameter is selected by cross-validation on the
+training set only.
 
-## Overview
+*Coursework project for IE4476.*
 
-This project investigates how Principal Component Analysis (PCA) dimensionality reduction affects classification performance using the MNIST handwritten digit dataset and K-Nearest Neighbors (KNN) classifier (K=5).
+## Problem
+Reducing 784 pixel features to a few dozen can make classification faster and sometimes more accurate, but the answer
+depends on the projection, the classifier and how the dimensionality is chosen. Picking the dimensionality by looking
+at test accuracy, which is common in coursework, biases the result. This project asks the question with a protocol in
+which the test set cannot influence any choice.
 
-## Project Structure
+## Objectives
+1. Compare four feature pipelines: raw pixels, PCA(m), LDA(d ≤ 9), and PCA(m) followed by LDA(d).
+2. Compare two classifiers on each: kNN (Euclidean) and minimum Mahalanobis distance (pooled covariance with ridge λ).
+3. Select m, d, k and λ by stratified 5-fold cross-validation on training data only. Then report test accuracy once.
+4. Test whether the differences are statistically significant: paired McNemar tests with Holm correction.
 
+## Key features
+- **Training-only selection.** The test images are loaded only after all selection is finished. A test checks this
+  (`tests/test_protocol.py`).
+- **One PCA solver everywhere:** eigendecomposition of the training covariance, so every m uses the same basis.
+- A Mahalanobis classifier with a relative ridge. λ = 0 is allowed only when the pooled covariance is well
+  conditioned.
+- Exact McNemar tests on the discordant predictions, Holm-corrected across 7 planned comparisons.
+- A reproducibility check against the first version: v2 recomputes v1's k = 5 numbers (96.88% raw, 97.55% PCA-30)
+  exactly.
+- Seeded and logged. The run log records the package versions, the data checks and the time spent in each stage.
+
+## Architecture
+```mermaid
+flowchart LR
+    A[mnist.npz<br/>60k train / 10k test] --> B[Scale to 0..1]
+    B --> C{Feature pipeline}
+    C --> R[Raw 784-D]
+    C --> P["PCA(m)<br/>m in 5..500"]
+    C --> L["LDA(d)<br/>d up to 9"]
+    C --> PL["PCA(m) then LDA(d)"]
+    R & P & L & PL --> K["kNN<br/>k in 1..21"]
+    R & P & L & PL --> M["Min. Mahalanobis<br/>lambda in 0..10"]
+    K & M --> CV["Stratified 5-fold CV<br/>20k training subsample"]
+    CV --> S[Select m, d, k, lambda]
+    S --> T[Refit on all 60k training images<br/>evaluate once on the 10k test set]
+    T --> MC[McNemar + Holm]
 ```
-Dimensionality_Reduction_Project/
-├── README.md                           # This file
-├── requirements.txt                    # Python dependencies
-├── main.py                             # Main experiment implementation
-├── generate_report.py                  # Word report generation script
-├── data/
-│   └── mnist.npz                       # MNIST dataset (downloaded)
-├── results/
-│   └── experimental_results.csv        # Complete experimental data
-├── figures/
-│   ├── accuracy_vs_dimensions.png      # Accuracy vs PCA dimensions
-│   ├── error_rate_vs_dimensions.png    # Error rate vs PCA dimensions
-│   ├── explained_variance.png          # Cumulative explained variance
-│   └── computational_time.png          # Training/testing time comparison
-└── report/
-    └── Dimensionality_Reduction_Report.docx  # Academic report (4-5 pages)
+
+## Technologies
+Python 3.14, NumPy, SciPy, scikit-learn (LDA, stratified folds), Matplotlib, pytest.
+
+## Project structure
 ```
-
-## Experimental Design
-
-### Dataset
-- **MNIST**: 60,000 training images, 10,000 test images
-- **Original dimensionality**: 784 (28×28 pixels)
-- **Classes**: 10 digits (0-9)
-
-### Methodology
-1. **Data Preprocessing**: Normalized pixel values to [0, 1] range
-2. **PCA Application**: Fitted on training data only (prevents data leakage)
-3. **Dimensions Tested**: 5, 10, 15, 20, 30, 40, 50, 75, 100, 150, 200, 300, 500, and baseline (784)
-4. **Classification**: K-Nearest Neighbors (K=5, Euclidean distance)
-5. **Evaluation**: Accuracy, error rate, explained variance, computational time
-
-### Key Findings
-
-**Best Performance (30 components):**
-- Accuracy: **97.55%** (better than baseline!)
-- Explained Variance: 73.05%
-- Testing speedup: **12.6× faster** than baseline
-- Dimensionality reduction: 96.2%
-
-**Optimal Balance (10 components):**
-- Accuracy: 92.76% (95.7% of baseline performance)
-- Explained Variance: 48.8%
-- Dimensionality reduction: 98.7%
-- Testing speedup: **8.5× faster**
-
-**Baseline (784 dimensions):**
-- Accuracy: 96.88%
-- Testing time: 3.49s
+├── v2/
+│   ├── main_v2.py          # the experiment (all pipelines, CV, test, McNemar, figures)
+│   ├── replot_figures.py   # redraws the figures from the CSVs
+│   ├── results/            # CSVs and run_log.txt of the reported run (pilot/ and smoke/ = sizing runs)
+│   └── figures/
+├── main.py                 # v1: PCA + kNN with k = 5 (kept as the baseline that v2 reproduces)
+├── verify_results.py       # independent re-check of the v1 results and its McNemar test
+├── generate_report.py      # v1 report generator (optional, needs python-docx)
+├── results/, figures/      # v1 outputs
+├── scripts/fetch_mnist.py  # downloads and hash-checks the dataset
+└── tests/                  # protocol, consistency and README checks
+```
 
 ## Installation
-
-### Prerequisites
-- Python 3.9 or higher
-- pip package manager
-
-### Setup
-
-1. **Clone or download this project**
-
-2. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-   Required packages:
-   - numpy>=1.21.0
-   - pandas>=1.3.0
-   - scikit-learn>=1.0.0
-   - matplotlib>=3.4.0
-   - seaborn>=0.11.0
-   - python-docx>=0.8.11
-   - tensorflow>=2.10.0
-
-## Running the Experiment
-
-### Full Experiment (from scratch)
-
 ```bash
-python3 main.py
+python3.14 -m venv .venv && source .venv/bin/activate
+pip install -r requirements-dev.txt
+python scripts/fetch_mnist.py          # writes data/mnist.npz (SHA-256 verified; not committed)
 ```
 
-This will:
-1. Load MNIST dataset from `data/mnist.npz`
-2. Run 14 experiments (13 PCA dimensions + baseline)
-3. Generate results CSV and 4 visualization figures
-4. Take approximately 5-10 minutes to complete
-
-**Expected output:**
-- `results/experimental_results.csv`
-- `figures/accuracy_vs_dimensions.png`
-- `figures/error_rate_vs_dimensions.png`
-- `figures/explained_variance.png`
-- `figures/computational_time.png`
-
-### Generate Report
-
+## Running
 ```bash
-python3 generate_report.py
+python -B v2/main_v2.py                # the full experiment (logged run 16.3 min; a re-run took 2.2 min, same results)
+python -B v2/main_v2.py --pilot        # quick sizing run (CV subsample 5000) into v2/results/pilot
+python -B v2/replot_figures.py         # redraw figures from the CSVs
+python -B main.py                      # v1 baseline
+python -B verify_results.py            # re-check of v1 (reads only)
+pytest                                 # tests run on synthetic digits, no download needed (about 5 s)
 ```
 
-This creates:
-- `report/Dimensionality_Reduction_Report.docx` (4-5 page academic report)
+## Results
+Test accuracy on the 10,000 MNIST test images. Each value uses the configuration selected by cross-validation
+(`v2/results/test_results.csv`, `selected_config.csv`).
 
-## Results Summary
+<!-- results-table -->
+| Pipeline | kNN setting | kNN accuracy | Mahalanobis setting | Mahalanobis accuracy |
+|---|---|---|---|---|
+| Raw | k = 1 | 96.91% | λ = 1 | 87.93% |
+| PCA | m = 50, k = 3 | 97.52% | m = 500, λ = 1 | 88.03% |
+| LDA | d = 9, k = 7 | 91.83% | d = 9, λ = 0 | 87.30% |
+| PCA_LDA | m = 100, d = 9, k = 9 | 91.95% | m = 100, d = 9, λ = 0 | 87.71% |
+<!-- results-table -->
 
-| Dimensions | Explained Variance | Accuracy | Error Rate | Test Time |
-|------------|-------------------|----------|------------|-----------|
-| 5          | 33.2%             | 74.73%   | 25.27%     | 0.07s     |
-| 10         | 48.8%             | 92.76%   | 7.24%      | 0.41s     |
-| 20         | 64.4%             | 96.94%   | 3.06%      | 0.38s     |
-| **30**     | **73.1%**         | **97.55%** | **2.45%** | **0.28s** |
-| 50         | 82.5%             | 97.48%   | 2.52%      | 0.36s     |
-| 100        | 91.5%             | 97.27%   | 2.73%      | 0.54s     |
-| 784 (baseline) | 100.0%        | 96.88%   | 3.12%      | 3.49s     |
+Significance (`v2/results/mcnemar.csv`, exact McNemar, Holm-corrected):
+- **PCA(50) + kNN beats raw-pixel kNN:** 97.52% vs 96.91%. Discordant pairs are 132 vs 71; p = 2.2·10⁻⁵, Holm
+  4.4·10⁻⁵.
+- **LDA-based pipelines lose to raw kNN** by about 5 points (p < 10⁻⁸⁰). LDA keeps only c − 1 = 9 axes, too few for kNN
+  on this data.
+- **PCA does not improve the Mahalanobis classifier:** 88.03% vs 87.93%, p = 0.25.
+- **kNN beats Mahalanobis** on every pipeline. A single pooled covariance underfits the digit classes.
 
-## Key Observations
+Training-set facts from the log: 87, 154 and 331 components are needed for 90%, 95% and 99% of the variance.
 
-1. **Performance Improvement**: PCA with 30 components achieves **higher accuracy** (97.55%) than the baseline (96.88%), demonstrating that dimensionality reduction can improve generalization by removing noise.
+| PCA dimensionality vs accuracy | LDA dimensionality vs accuracy |
+|---|---|
+| ![PCA](v2/figures/pca_accuracy_print.png) | ![LDA](v2/figures/lda_accuracy_print.png) |
 
-2. **Computational Efficiency**: The 30-component model is **12.6× faster** during inference, making it ideal for real-time applications.
+**Verification.**
+- `tests/test_results_files.py` recomputes every McNemar p-value and every Holm adjustment from the committed counts.
+  It also checks that each test row uses exactly the CV-selected setting, and that this table matches the CSV.
+- `tests/test_protocol.py` runs the real pipeline on synthetic digits. It checks that the test set is loaded only after
+  selection, and that the same seed gives the same CV table.
 
-3. **Diminishing Returns**: Beyond 30 dimensions, accuracy plateaus while computational cost continues to increase.
+## Limitations
+- CV uses a stratified 20,000-image training subsample (sized from the pilot run) to keep the grid search under
+  about 7 minutes. The final models are refit on all 60,000 images.
+- One dataset; MNIST is close to saturated for kNN.
+- The Mahalanobis rule uses one pooled covariance. Class-specific covariances (QDA) were not tested.
+- Timings come from one machine and are indicative only.
 
-4. **Sweet Spot**: 10-30 components provide the optimal balance between performance, speed, and complexity.
-
-## Reproducing Results
-
-To reproduce the exact results in the report:
-
-1. Ensure MNIST dataset is present in `data/mnist.npz`
-2. Run: `python3 main.py`
-3. Results will match reported values (±0.1% due to randomness in KNN distance calculations)
-
-**Note**: The random_state is set to 42 for PCA to ensure reproducibility.
-
-## File Descriptions
-
-### Source Code
-- **main.py**: Complete experimental pipeline
-  - Data loading and preprocessing
-  - PCA transformation (fitted on training data only)
-  - KNN classifier training and evaluation
-  - Results collection and visualization
-  - ~500 lines, fully documented
-
-- **generate_report.py**: Automated report generation
-  - Loads experimental results from CSV
-  - Creates formatted Word document with tables and figures
-  - Academic writing style with 5 sections
-  - ~350 lines
-
-### Data Files
-- **data/mnist.npz**: MNIST dataset in NumPy compressed format
-- **results/experimental_results.csv**: Complete experimental data (14 rows × 6 columns)
-
-### Visualizations
-All figures are 300 DPI PNG format suitable for publication:
-1. **accuracy_vs_dimensions.png**: Shows classification accuracy vs. number of PCA components
-2. **error_rate_vs_dimensions.png**: Shows error rate (1 - accuracy) vs. components
-3. **explained_variance.png**: Cumulative explained variance by number of components
-4. **computational_time.png**: Training and testing time comparison across dimensions
-
-### Report
-- **Dimensionality_Reduction_Report.docx**: 4-5 page academic report including:
-  - Abstract
-  - Introduction (motivation, curse of dimensionality)
-  - Methodology (PCA, KNN, experimental setup)
-  - Results (tables, figures, analysis)
-  - Discussion (optimal dimensionality, trade-offs)
-  - Conclusion
-  - References
-
-## Technical Details
-
-### Data Leakage Prevention
-PCA is **fitted only on training data**:
-```python
-pca = PCA(n_components=n)
-X_train_pca = pca.fit_transform(X_train)  # Fit on training
-X_test_pca = pca.transform(X_test)        # Transform test only
-```
-
-### Performance Metrics
-- **Accuracy**: Percentage of correctly classified samples
-- **Error Rate**: 1 - Accuracy
-- **Explained Variance**: Proportion of dataset variance retained
-- **Training Time**: Time to fit KNN model
-- **Testing Time**: Time to classify all 10,000 test samples
-
-## Limitations and Future Work
-
-1. **Single Classifier**: Only KNN tested; future work could compare with SVM, Random Forest, Neural Networks
-2. **Single Dataset**: Only MNIST; could extend to CIFAR-10, Fashion-MNIST
-3. **PCA Only**: Could compare with other methods (LDA, t-SNE, UMAP, Autoencoders)
-4. **Hyperparameters**: K=5 fixed; could optimize with cross-validation
+## Future work
+Class-specific covariance models, nonlinear projections (kernel PCA, autoencoders), and a second dataset such as
+Fashion-MNIST, where kNN is far from saturated.
 
 ## References
+1. LeCun, Y., Cortes, C., Burges, C. J. C. The MNIST database of handwritten digits.
+2. Jolliffe, I. T., Cadima, J. (2016). Principal component analysis: a review and recent developments.
+   *Phil. Trans. R. Soc. A* 374: 20150202.
+3. Fisher, R. A. (1936). The use of multiple measurements in taxonomic problems. *Annals of Eugenics* 7(2).
+4. McNemar, Q. (1947). Note on the sampling error of the difference between correlated proportions or percentages.
+   *Psychometrika* 12(2).
+5. Holm, S. (1979). A simple sequentially rejective multiple test procedure. *Scand. J. Statistics* 6(2).
 
-1. van der Maaten, L., & Hinton, G. (2008). Visualizing data using t-SNE. *Journal of Machine Learning Research*, 9, 2579-2605.
-2. LeCun, Y., Cortes, C., & Burges, C. J. (2010). MNIST handwritten digit database. *ATT Labs*.
-3. Jolliffe, I. T., & Cadima, J. (2016). Principal component analysis: a review and recent developments. *Philosophical Transactions of the Royal Society A*, 374(2065), 20150202.
-
-## Author
-
-Final Year Project
-November 2026
-
-## License
-
-This project is for educational purposes only.
-
-
----
-## About this repository
-Coursework: PCA, LDA and PCA→LDA on MNIST with kNN (k chosen by cross-validation) and a minimum-Mahalanobis classifier; v1 (original) and v2 (training-only selection, McNemar tests).
-
-**Left out of this repository:** MNIST data (data/mnist.npz) and the written reports.
-
-*Private draft repository; under review before any public release.*
+The dataset is not redistributed here; `scripts/fetch_mnist.py` downloads the standard copy.
