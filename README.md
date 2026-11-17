@@ -1,3 +1,5 @@
+![Project banner (decorative)](docs/images/banner.svg)
+
 # Dimensionality Reduction for Handwritten-Digit Classification
 
 A controlled comparison of PCA, LDA and PCA→LDA feature extraction on MNIST. Two classifiers are tested, k-nearest
